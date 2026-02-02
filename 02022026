@@ -1,0 +1,23 @@
+odatda quyidagicha bo'ladi:
+
+Kod yozasiz (yoki o'zgartirish kiritasiz).
+
+Holatni tekshirasiz: git status.
+
+O'zgarishlarni kiritasiz: git add ..
+
+Izoh bilan saqlaysiz: git commit -m "biror narsani to'g'irladim".
+
+GitHub-ga yuborasiz: git push origin development.
+
+Foydali maslahat (Branch-lar orasida o'tish):
+Agar kodingiz tayyor bo'lsa va uni asosiy branch-ga (main yoki master) qo'shmoqchi bo'lsangiz:
+
+Asosiy branch-ga o'tish: git checkout main
+
+development dagi o'zgarishlarni main ga qo'shish: git merge development
+
+Va GitHub-ga yuborish: git push origin main
+
+Keyingi qadam sifatida nima qilmoqchisiz?
+Agar xohlasangiz, sizga hozirgi loyihangiz uchun avtomatik ravishda GitHub-da tekshiruvlar o'tkazadigan kichik bir CI/CD (GitHub Actions) faylini yozishda yordam berishim mumkin. Bu orqali siz kodingizni GitHub-ga push qilganingizda, u avtomatik ravishda xatolarni tekshiradigan bo'ladi.
