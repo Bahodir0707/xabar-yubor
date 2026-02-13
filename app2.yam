@@ -1,0 +1,113 @@
+# 1. Deployment - Ilovani qanday ishlashini belgilaydi
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-web-app
+  labels:
+    app: web-app
+spec:
+  replicas: 4  # Mana shu joyni o'zgartirib GitOps-ni tekshirasiz
+  selector:
+    matchLabels:
+      app: web-app
+  template:
+    metadata:
+      labels:
+        app: web-app
+    spec:
+      containers:
+      - name: nginx-container
+        image: nginx:latest # Test uchun oddiy nginx ishlatamiz
+        ports:
+        - containerPort: 80
+        resources: # Middle darajasida resurslarni belgilash shart
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+
+---
+# 2. Service - Podlarni bitta IP/DNS ostida birlashtiradi
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-app-service
+spec:
+  selector:
+    app: web-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP
+
+---
+# 3. Ingress - Tashqi dunyodan brauzer orqali kirish uchun
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-app-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+  - host: myapp.local # Buni keyinchalik /etc/hosts ga qo'shasiz
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: web-app-service
+            port:
+              number: 80
+              
+---
+# ==========================================
+# 4. APP - REDIS (Kesh tizimi)
+# ==========================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-four-redis
+  labels:
+    app: redis-db
+spec:
+  replicas: 2  # 2 ta pod kesh uchun yetarli
+  selector:
+    matchLabels:
+      app: redis-db
+  template:
+    metadata:
+      labels:
+        app: redis-db
+    spec:
+      containers:
+      - name: redis
+        image: redis:alpine
+        ports:
+        - containerPort: 6379
+        resources: # Resurslarni boshqarish - Middle darajasi belgisi
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+
+---
+# 4-Ilova uchun Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+spec:
+  selector:
+    app: redis-db
+  ports:
+    - protocol: TCP
+      port: 6379
+      targetPort: 6379
+  type: ClusterIP
