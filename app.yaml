@@ -6,7 +6,7 @@ metadata:
   labels:
     app: web-app
 spec:
-  replicas: 3  # Mana shu joyni o'zgartirib GitOps-ni tekshirasiz
+  replicas: 5  # Mana shu joyni o'zgartirib GitOps-ni tekshirasiz
   selector:
     matchLabels:
       app: web-app
