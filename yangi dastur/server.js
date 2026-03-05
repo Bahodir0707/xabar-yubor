@@ -1,40 +1,46 @@
-// server.js
 const express = require('express');
 const axios = require('axios');
+const fs = require('fs'); // Ma'lumotlarni saqlash uchun
 const path = require('path');
 const app = express();
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.static('public'));
 
-const TELEGRAM_TOKEN = '8646623223:AAHgvSmmF28fiw8Z4zam7nsi0iJwUn899P4';
-const CHAT_ID = '1634980161';
+const USERS_FILE = './users.json';
 
-// Frontend sahifasini ko'rsatish
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend.html'));
+// Foydalanuvchilarni o'qish funksiyasi
+const getUsers = () => {
+    if (!fs.existsSync(USERS_FILE)) return [];
+    return JSON.parse(fs.readFileSync(USERS_FILE));
+};
+
+// 1. Ro'yxatdan o'tish (Register)
+app.post('/register', (req, res) => {
+    const { username, password } = req.body;
+    const users = getUsers();
+
+    if (users.find(u => u.username === username)) {
+        return res.status(400).send("Bu foydalanuvchi mavjud!");
+    }
+
+    users.push({ username, password });
+    fs.writeFileSync(USERS_FILE, JSON.stringify(users));
+    res.send("Ro'yxatdan o'tdingiz!");
 });
 
-// Ma'lumotlarni qabul qilish va Telegramga yuborish
-app.post('/send-data', async (req, res) => {
-    const { name, phone, message } = req.body;
-    
-    const text = `🚀 **Yangi xabar!**\n\n👤 Ism: ${name}\n📞 Tel: ${phone}\n💬 Xabar: ${message}`;
+// 2. Kirish (Login)
+app.post('/login', (req, res) => {
+    const { username, password } = req.body;
+    const users = getUsers();
+    const user = users.find(u => u.username === username && u.password === password);
 
-    try {
-        await axios.post(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
-            chat_id: CHAT_ID,
-            text: text,
-            parse_mode: 'Markdown'
-        });
-        res.send("Ma'lumot yuborildi!");
-    } catch (error) {
-        res.status(500).send("Xatolik yuz berdi.");
+    if (user) {
+        res.json({ success: true, redirect: "https://kun.uz" });
+    } else {
+        res.status(401).json({ success: false, message: "Login yoki parol xato!" });
     }
 });
 
-// server.js oxiridagi app.listen qismini mana bunga almashtiring:
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server ${PORT}-portda ishlamoqda`);
-});
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log(`Server ${PORT}-portda yondi`));
